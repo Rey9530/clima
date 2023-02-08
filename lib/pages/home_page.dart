@@ -2,12 +2,16 @@ import 'package:clima_app/components/background_component.dart';
 import 'package:clima_app/pages/add_places_page.dart';
 import 'package:clima_app/utils/colors.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../providers/shearch_places_provider.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<ShearchPlacesProvider>(context);
     return Scaffold(
       body: BackgroundComponent(
         child: SingleChildScrollView(
@@ -27,6 +31,7 @@ class HomePage extends StatelessWidget {
           size: 42,
         ),
         onPressed: () {
+          provider.listaCiudades = [];
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const AddPlacesPage()),
@@ -45,7 +50,7 @@ class ListadoCiudadesWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
-      children: [
+      children: const [
         ItemCityWidget(
           ciudad: "New York",
           grados: "7",

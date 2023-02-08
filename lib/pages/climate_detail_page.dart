@@ -1,5 +1,4 @@
 // import 'package:clima_app/components/background_component.dart';
-import 'dart:math' as math;
 
 import 'package:animate_do/animate_do.dart';
 import 'package:clima_app/utils/colors.dart';
