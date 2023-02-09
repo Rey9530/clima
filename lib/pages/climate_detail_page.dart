@@ -16,46 +16,47 @@ class ClimateDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = Provider.of<ShearchPlacesProvider>(context, listen: false);
     return Scaffold(
-      body: Stack(
-        children: [
-          Container(
-            width: double.infinity,
-            height: 410,
-            color: colorPiel,
-          ),
-          Container(
-              margin: const EdgeInsets.only(
-                left: 10,
-                right: 10,
-                top: 25,
-              ),
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Container(
               width: double.infinity,
-              child: FutureBuilder(
-                future: provider.getDataClimate(ciudad),
-                builder:
-                    (BuildContext context, AsyncSnapshot<RespClima?> snapshot) {
-                  if (!snapshot.hasData) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  } else if (snapshot.data != null) {
-                    return BodyDetailComponent(
-                      clima: snapshot.data!,
-                      ciudad: ciudad,
-                    );
-                  } else {
-                    return const Center(
-                      child: TextComponent(
-                        text: 'Sin Datos',
-                        fontSize: 44,
-                        fontWeight: FontWeight.w400,
-                        textAlign: TextAlign.center,
-                      ),
-                    );
-                  }
-                },
-              ))
-        ],
+              height: 410,
+              color: colorPiel,
+            ),
+            Container(
+                margin: const EdgeInsets.only(
+                  left: 10,
+                  right: 10,
+                ),
+                width: double.infinity,
+                child: FutureBuilder(
+                  future: provider.getDataClimate(ciudad),
+                  builder: (BuildContext context,
+                      AsyncSnapshot<RespClima?> snapshot) {
+                    if (!snapshot.hasData) {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    } else if (snapshot.data != null) {
+                      return BodyDetailComponent(
+                        clima: snapshot.data!,
+                        ciudad: ciudad,
+                      );
+                    } else {
+                      return const Center(
+                        child: TextComponent(
+                          text: 'Sin Datos',
+                          fontSize: 44,
+                          fontWeight: FontWeight.w400,
+                          textAlign: TextAlign.center,
+                        ),
+                      );
+                    }
+                  },
+                ))
+          ],
+        ),
       ),
     );
   }
@@ -185,7 +186,7 @@ class CountsComponents extends StatelessWidget {
           ),
           CardSkillsComponent(
             color: const Color(0XFFA03DBD),
-            icono: Icons.air,
+            icono: Icons.water,
             text: '${provider.respClima!.elevation}',
             subText: 'Elevación',
           ),
