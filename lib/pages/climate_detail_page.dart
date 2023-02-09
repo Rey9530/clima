@@ -1,15 +1,20 @@
 // import 'package:clima_app/components/background_component.dart';
 
 import 'package:animate_do/animate_do.dart';
+import 'package:clima_app/models/ciudades_model.dart';
+import 'package:clima_app/models/clima_model.dart';
+import 'package:clima_app/providers/shearch_places_provider.dart';
 import 'package:clima_app/utils/colors.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class ClimateDetailPage extends StatelessWidget {
-  const ClimateDetailPage({super.key});
-
+  const ClimateDetailPage({super.key, required this.ciudad});
+  final Ciudad ciudad;
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<ShearchPlacesProvider>(context, listen: false);
     return Scaffold(
       body: Stack(
         children: [
@@ -19,14 +24,37 @@ class ClimateDetailPage extends StatelessWidget {
             color: colorPiel,
           ),
           Container(
-            margin: const EdgeInsets.only(
-              left: 10,
-              right: 10,
-              top: 60,
-            ),
-            width: double.infinity,
-            child: const BodyDetailComponent(),
-          )
+              margin: const EdgeInsets.only(
+                left: 10,
+                right: 10,
+                top: 25,
+              ),
+              width: double.infinity,
+              child: FutureBuilder(
+                future: provider.getDataClimate(ciudad),
+                builder:
+                    (BuildContext context, AsyncSnapshot<RespClima?> snapshot) {
+                  if (!snapshot.hasData) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  } else if (snapshot.data != null) {
+                    return BodyDetailComponent(
+                      clima: snapshot.data!,
+                      ciudad: ciudad,
+                    );
+                  } else {
+                    return const Center(
+                      child: TextComponent(
+                        text: 'Sin Datos',
+                        fontSize: 44,
+                        fontWeight: FontWeight.w400,
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  }
+                },
+              ))
         ],
       ),
     );
@@ -34,26 +62,48 @@ class ClimateDetailPage extends StatelessWidget {
 }
 
 class BodyDetailComponent extends StatelessWidget {
-  const BodyDetailComponent({
+  BodyDetailComponent({
     Key? key,
+    required this.clima,
+    required this.ciudad,
   }) : super(key: key);
+  final RespClima clima;
+  final Ciudad ciudad;
 
+  final List<String> meses = [
+    "Enero",
+    "Febrero",
+    "Marzo",
+    "Abril",
+    "Mayo",
+    "Junio",
+    "Julio",
+    "Agosto",
+    "Septiembre",
+    "Octubre",
+    "Noviembre",
+    "Diciembre",
+  ];
   @override
   Widget build(BuildContext context) {
+    List<String> fechaHoraArray = clima.currentWeather.time.split("T");
+    List<String> fechArray = fechaHoraArray[0].split("-");
+
+    String mes = meses[int.parse(fechArray[1])];
     return SingleChildScrollView(
       physics: const BouncingScrollPhysics(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const TextComponent(
-            text: '12 de Febrero',
+          TextComponent(
+            text: '${fechArray[2]} de $mes',
             fontSize: 20,
             fontWeight: FontWeight.w400,
           ),
-          const TextComponent(
-            fontSize: 28,
+          TextComponent(
+            fontSize: 18,
             fontWeight: FontWeight.bold,
-            text: 'San Salvador',
+            text: ciudad.admin1 ?? ciudad.name ?? "",
           ),
           const SizedBox(height: 10),
           Material(
@@ -64,85 +114,38 @@ class BodyDetailComponent extends StatelessWidget {
               height: 150,
             ),
           ),
-          const TextComponent(
+          TextComponent(
             fontSize: 68,
             fontWeight: FontWeight.bold,
-            text: '-6°',
+            text: '${clima.currentWeather.temperature}°',
             textAlign: TextAlign.center,
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: const [
-              TextComponent(
-                width: 95,
-                text: 'Mostly sunny',
-              ),
-              TextComponent(
-                width: 12,
-                text: ' | ',
-              ),
-              TextComponent(
-                width: 65,
-                text: 'H:-1 L:-6',
-              ),
-              TextComponent(
-                width: 12,
-                text: '|',
-              ),
-              TextComponent(
-                width: 95,
-                text: 'FEELS LIKE -9',
-              ),
-            ],
+          TextComponent(
+            text: 'Zona Horaria: ${clima.timezone}',
+            textAlign: TextAlign.center,
           ),
           SizedBox(
             width: double.infinity,
-            height: 115.0,
-            child: ListView(
+            height: 120.0,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: clima.daily.time.length,
               scrollDirection: Axis.horizontal,
-              children: const [
-                ItemRowDayComponent(
-                  fecha: 'Ahora',
+              itemBuilder: (BuildContext context, int index) {
+                DateTime fechaArray = clima.daily.time[index];
+                String minimo =
+                    clima.daily.apparentTemperatureMin[index].toString();
+                String maximo =
+                    clima.daily.apparentTemperatureMax[index].toString();
+                String unidadMedida = clima.dailyUnits.apparentTemperatureMin;
+                return ItemRowDayComponent(
+                  fecha: index == 0 ? "Ahora" : fechaArray.day.toString(),
                   img: 'assets/png/cloud-sun.png',
-                  temperatura: '-6°',
-                  isBool: true,
-                ),
-                ItemRowDayComponent(
-                  fecha: '08',
-                  img: 'assets/png/cloud-sun.png',
-                  temperatura: '-6°',
-                ),
-                ItemRowDayComponent(
-                  fecha: '09',
-                  img: 'assets/png/sun.png',
-                  temperatura: '-5°',
-                ),
-                ItemRowDayComponent(
-                  fecha: '10',
-                  img: 'assets/png/cloud-sun.png',
-                  temperatura: '-4°',
-                ),
-                ItemRowDayComponent(
-                  fecha: '11',
-                  img: 'assets/png/cloud-sun.png',
-                  temperatura: '-4°',
-                ),
-                ItemRowDayComponent(
-                  fecha: '12',
-                  img: 'assets/png/cloud-sun.png',
-                  temperatura: '-4°',
-                ),
-                ItemRowDayComponent(
-                  fecha: '14',
-                  img: 'assets/png/cloud-sun.png',
-                  temperatura: '-4°',
-                ),
-                ItemRowDayComponent(
-                  fecha: '15',
-                  img: 'assets/png/cloud-sun.png',
-                  temperatura: '-4°',
-                ),
-              ],
+                  temperatura:
+                      'Min $minimo $unidadMedida\nMax $maximo $unidadMedida',
+                  isBool: index == 0,
+                );
+              },
             ),
           ),
           const CharAdnResportComponent(),
@@ -162,27 +165,29 @@ class CountsComponents extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<ShearchPlacesProvider>(context, listen: false);
     return SizedBox(
       width: double.infinity,
       child: Row(
-        children: const [
+        children: [
           CardSkillsComponent(
-            color: Color(0XFF0000FF),
-            icono: Icons.ac_unit,
-            text: '10%',
-            subText: 'Snow',
-          ),
-          CardSkillsComponent(
-            color: Color(0XFF5DC1B9),
-            icono: Icons.water_drop,
-            text: '62%',
-            subText: 'Humidity',
-          ),
-          CardSkillsComponent(
-            color: Color(0XFFA03DBD),
+            color: const Color(0XFF0000FF),
             icono: Icons.air,
-            text: '5 m/s',
-            subText: 'Wind',
+            text:
+                "${provider.respClima!.currentWeather.windspeed} ${provider.respClima!.dailyUnits.windspeed10MMax}",
+            subText: 'Velocidad',
+          ),
+          CardSkillsComponent(
+            color: const Color(0XFF5DC1B9),
+            icono: Icons.location_searching,
+            text: "${provider.respClima!.currentWeather.winddirection}°",
+            subText: 'Direccion',
+          ),
+          CardSkillsComponent(
+            color: const Color(0XFFA03DBD),
+            icono: Icons.air,
+            text: '${provider.respClima!.elevation}',
+            subText: 'Elevación',
           ),
         ],
       ),
@@ -205,7 +210,7 @@ class CardSkillsComponent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 80,
+      width: 95,
       height: 110,
       decoration: BoxDecoration(
         color: color.withOpacity(0.4),
@@ -237,9 +242,9 @@ class CardSkillsComponent extends StatelessWidget {
           ),
           const SizedBox(height: 5),
           TextComponent(
-            // fontWeight: FontWeight.bold,
             text: subText,
             textAlign: TextAlign.left,
+            fontSize: 10,
           ),
         ],
       ),
@@ -261,6 +266,7 @@ class _CharAdnResportComponentState extends State<CharAdnResportComponent> {
   bool isChart = true;
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<ShearchPlacesProvider>(context, listen: false);
     return Column(
       children: [
         const SizedBox(height: 10),
@@ -269,8 +275,8 @@ class _CharAdnResportComponentState extends State<CharAdnResportComponent> {
             const SizedBox(width: 10),
             const TextComponent(
               fontWeight: FontWeight.bold,
-              width: 95,
-              text: 'Esta Semana',
+              width: 145,
+              text: 'Aproximación semanal',
             ),
             const Expanded(child: SizedBox(width: 10)),
             ElevatedButtomComponent(
@@ -308,64 +314,96 @@ class _CharAdnResportComponentState extends State<CharAdnResportComponent> {
                     elevation: 10,
                     borderRadius: BorderRadius.circular(15),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 5),
-                      width: double.infinity,
-                      height: 120.0,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        children: const [
-                          ItemReportComponent(
-                            fecha: 'Jan 16',
-                            dia: 'Mon',
-                            img: 'assets/png/cloud-sun.png',
-                            isBool: true,
-                            temperatura: '-6',
-                          ),
-                          ItemReportComponent(
-                            fecha: '16',
-                            dia: 'Tue',
-                            img: 'assets/png/cloud-sun.png',
-                            isBool: false,
-                            temperatura: '-4',
-                          ),
-                          ItemReportComponent(
-                            fecha: '17',
-                            dia: 'Wed',
-                            img: 'assets/png/cloud-sun.png',
-                            isBool: false,
-                            temperatura: '-3',
-                          ),
-                          ItemReportComponent(
-                            fecha: '18',
-                            dia: 'Thu',
-                            img: 'assets/png/cloud-sun.png',
-                            isBool: false,
-                            temperatura: '2',
-                          ),
-                          ItemReportComponent(
-                            fecha: '19',
-                            dia: 'Fri',
-                            img: 'assets/png/cloud-sun.png',
-                            isBool: false,
-                            temperatura: '3',
-                          ),
-                          ItemReportComponent(
-                            fecha: '20',
-                            dia: 'Sat',
-                            img: 'assets/png/cloud-sun.png',
-                            isBool: false,
-                            temperatura: '-3',
-                          ),
-                          ItemReportComponent(
-                            fecha: '21',
-                            dia: 'Sun',
-                            img: 'assets/png/cloud-sun.png',
-                            isBool: false,
-                            temperatura: '-7',
-                          ),
-                        ],
-                      ),
-                    ),
+                        padding: const EdgeInsets.symmetric(horizontal: 5),
+                        width: double.infinity,
+                        height: 120.0,
+                        child: ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: provider.respClima?.daily.time.length,
+                          scrollDirection: Axis.horizontal,
+                          itemBuilder: (BuildContext context, int index) {
+                            DateTime fechaArray =
+                                provider.respClima?.daily.time[index] ??
+                                    DateTime.now();
+                            String minimo = provider
+                                    .respClima?.daily.temperature2MMin[index]
+                                    .toString() ??
+                                "";
+                            String maximo = provider
+                                    .respClima?.daily.temperature2MMax[index]
+                                    .toString() ??
+                                "";
+                            String unidadMedida = provider
+                                    .respClima?.dailyUnits.temperature2MMin ??
+                                "";
+
+                            return ItemReportComponent(
+                              fecha: index == 0
+                                  ? "Ahora"
+                                  : fechaArray.day.toString(),
+                              dia: provider.listaDias[fechaArray.weekday],
+                              img: 'assets/png/cloud-sun.png',
+                              isBool: true,
+                              temperatura:
+                                  'Min $minimo $unidadMedida\nMax $maximo $unidadMedida',
+                            );
+                          },
+                        )
+                        // ListView(
+                        //   scrollDirection: Axis.horizontal,
+                        //   children: const [
+                        //     ItemReportComponent(
+                        //       fecha: 'Jan 16',
+                        //       dia: 'Mon',
+                        //       img: 'assets/png/cloud-sun.png',
+                        //       isBool: true,
+                        //       temperatura: '-6',
+                        //     ),
+                        //     ItemReportComponent(
+                        //       fecha: '16',
+                        //       dia: 'Tue',
+                        //       img: 'assets/png/cloud-sun.png',
+                        //       isBool: false,
+                        //       temperatura: '-4',
+                        //     ),
+                        //     ItemReportComponent(
+                        //       fecha: '17',
+                        //       dia: 'Wed',
+                        //       img: 'assets/png/cloud-sun.png',
+                        //       isBool: false,
+                        //       temperatura: '-3',
+                        //     ),
+                        //     ItemReportComponent(
+                        //       fecha: '18',
+                        //       dia: 'Thu',
+                        //       img: 'assets/png/cloud-sun.png',
+                        //       isBool: false,
+                        //       temperatura: '2',
+                        //     ),
+                        //     ItemReportComponent(
+                        //       fecha: '19',
+                        //       dia: 'Fri',
+                        //       img: 'assets/png/cloud-sun.png',
+                        //       isBool: false,
+                        //       temperatura: '3',
+                        //     ),
+                        //     ItemReportComponent(
+                        //       fecha: '20',
+                        //       dia: 'Sat',
+                        //       img: 'assets/png/cloud-sun.png',
+                        //       isBool: false,
+                        //       temperatura: '-3',
+                        //     ),
+                        //     ItemReportComponent(
+                        //       fecha: '21',
+                        //       dia: 'Sun',
+                        //       img: 'assets/png/cloud-sun.png',
+                        //       isBool: false,
+                        //       temperatura: '-7',
+                        //     ),
+                        //   ],
+                        // ),
+                        ),
                   ),
                 ),
               )
@@ -391,9 +429,9 @@ class ItemReportComponent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-        width: 53,
+        width: 60,
         height: 100,
-        margin: const EdgeInsets.symmetric(horizontal: 1),
+        margin: const EdgeInsets.symmetric(horizontal: 5),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.center,
@@ -409,6 +447,7 @@ class ItemReportComponent extends StatelessWidget {
             TextComponent(
               fontWeight: isBool ? FontWeight.bold : FontWeight.normal,
               text: temperatura,
+              fontSize: 10,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 5),
@@ -470,6 +509,22 @@ class ChartLineBarComponent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<ShearchPlacesProvider>(context, listen: false);
+
+    List<double> listOrdMin =
+        provider.respClima?.daily.apparentTemperatureMin ?? [];
+    List<double> listOrdMax =
+        provider.respClima?.daily.apparentTemperatureMax ?? [];
+    listOrdMin.sort();
+    listOrdMax.sort();
+    List<FlSpot> spots = [];
+    for (var i = 0; i < (provider.respClima!.daily.time.length); i++) {
+      double min = provider.respClima!.daily.apparentTemperatureMin[i];
+      double max = provider.respClima!.daily.apparentTemperatureMax[i];
+      double calculo = ((max - min) / 2) + min;
+      spots.add(FlSpot((i + 1), calculo));
+    }
+
     return SizedBox(
       width: double.infinity,
       height: 180,
@@ -477,22 +532,13 @@ class ChartLineBarComponent extends StatelessWidget {
         LineChartData(
           lineBarsData: [
             LineChartBarData(
-              spots: [
-                const FlSpot(1, -6),
-                const FlSpot(2, -4),
-                const FlSpot(3, -3),
-                const FlSpot(4, 2),
-                const FlSpot(5, 3),
-                const FlSpot(6, -3),
-                const FlSpot(7, -7),
-              ],
+              spots: spots,
               color: Colors.blue,
             ),
           ],
           gridData: FlGridData(
             show: true,
             drawVerticalLine: false,
-            // horizontalInterval: 5,
           ),
           titlesData: FlTitlesData(
             show: true,
@@ -503,7 +549,21 @@ class ChartLineBarComponent extends StatelessWidget {
             rightTitles: AxisTitles(
               axisNameWidget: const SizedBox(),
             ),
-            bottomTitles: AxisTitles(sideTitles: _bottomTitles),
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  int dia = value.toInt() - 1;
+                  if (dia >= 0 && dia < 7) {
+                    DateTime fechaArray =
+                        provider.respClima?.daily.time[dia] ?? DateTime.now();
+                    return Text(provider.listaDias[fechaArray.weekday]);
+                  } else {
+                    return const Text("");
+                  }
+                },
+              ),
+            ),
           ),
           borderData: FlBorderData(
             show: true,
@@ -516,8 +576,8 @@ class ChartLineBarComponent extends StatelessWidget {
           ),
           minX: 0,
           maxX: 8,
-          minY: -10,
-          maxY: 10,
+          minY: listOrdMin[0],
+          maxY: listOrdMax[listOrdMax.length - 1],
         ),
         swapAnimationDuration: const Duration(
           milliseconds: 150,
@@ -526,38 +586,6 @@ class ChartLineBarComponent extends StatelessWidget {
       ),
     );
   }
-
-  SideTitles get _bottomTitles => SideTitles(
-        showTitles: true,
-        getTitlesWidget: (value, meta) {
-          String text = '';
-          switch (value.toInt()) {
-            case 1:
-              text = 'L';
-              break;
-            case 2:
-              text = 'M';
-              break;
-            case 3:
-              text = 'M';
-              break;
-            case 4:
-              text = 'J';
-              break;
-            case 5:
-              text = 'V';
-              break;
-            case 6:
-              text = 'S';
-              break;
-            case 7:
-              text = 'D';
-              break;
-          }
-
-          return Text(text);
-        },
-      );
 }
 
 class ItemRowDayComponent extends StatelessWidget {
@@ -576,8 +604,8 @@ class ItemRowDayComponent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 65,
-      height: 100,
+      width: 70,
+      height: 110,
       margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 10),
       child: Material(
         elevation: 5,
@@ -603,6 +631,7 @@ class ItemRowDayComponent extends StatelessWidget {
             TextComponent(
               fontWeight: isBool ? FontWeight.bold : FontWeight.normal,
               text: temperatura,
+              fontSize: 10,
               textAlign: TextAlign.center,
             ),
           ],

@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:async';
 
 import 'package:clima_app/components/background_component.dart';
@@ -14,39 +16,45 @@ class AddPlacesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<ShearchPlacesProvider>(context);
+    Size size = MediaQuery.of(context).size;
     return Scaffold(
       body: BackgroundComponent(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const TextBuscadorComponent(),
-            provider.loading
-                ? const CircularProgressIndicator()
-                : ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: provider.listaCiudades.length,
-                    itemBuilder: (BuildContext context, int index) {
-                      return ItemResultPlacesComponent(
-                        ciudad: provider.listaCiudades[index],
-                      );
-                    },
-                  ),
-            (provider.listaCiudades.isEmpty && !(provider.loading))
-                ? const SizedBox(
-                    width: double.infinity,
-                    child: Text(
-                      "Digite el nombre de una ciudad valida en el buscador",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
+        child: SizedBox(
+          width: double.infinity,
+          height: size.height * 0.9,
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              children: [
+                const TextBuscadorComponent(),
+                provider.loading
+                    ? const CircularProgressIndicator()
+                    : ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: provider.listaCiudades.length,
+                        itemBuilder: (BuildContext context, int index) {
+                          return ItemResultPlacesComponent(
+                            ciudad: provider.listaCiudades[index],
+                          );
+                        },
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                  )
-                : const SizedBox(),
-            const Expanded(child: SizedBox()),
-          ],
+                (provider.listaCiudades.isEmpty && !(provider.loading))
+                    ? const SizedBox(
+                        width: double.infinity,
+                        child: Text(
+                          "Digite el nombre de una ciudad valida en el buscador",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      )
+                    : const SizedBox(),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -82,13 +90,15 @@ class ItemResultPlacesComponent extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       height: 50,
       width: double.infinity,
-      child: GestureDetector(
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const ClimateDetailPage(),
-          ),
-        ),
+      child: TextButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ClimateDetailPage(ciudad: ciudad),
+            ),
+          );
+        },
         child: Row(
           children: [
             Container(width: 20),
@@ -180,6 +190,7 @@ class _TextBuscadorComponentState extends State<TextBuscadorComponent> {
                 const Duration(milliseconds: 500),
                 () async {
                   await provider.obtenerCiudades(query);
+                  FocusScope.of(context).unfocus();
                 },
               );
               // print("fin");
