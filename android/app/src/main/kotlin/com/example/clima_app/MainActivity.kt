@@ -1,4 +1,4 @@
-package com.example.clima_app
+package tech.reynaldorosales.clima_app
 
 import io.flutter.embedding.android.FlutterActivity
 
