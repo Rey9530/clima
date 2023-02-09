@@ -1,8 +1,11 @@
 // import 'package:clima_app/components/background_component.dart';
 
 import 'package:animate_do/animate_do.dart';
+import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
+import 'package:clima_app/components/snack_bar.dart';
 import 'package:clima_app/models/ciudades_model.dart';
 import 'package:clima_app/models/clima_model.dart';
+import 'package:clima_app/providers/basedatos_provider.dart';
 import 'package:clima_app/providers/shearch_places_provider.dart';
 import 'package:clima_app/utils/colors.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -87,6 +90,7 @@ class BodyDetailComponent extends StatelessWidget {
   ];
   @override
   Widget build(BuildContext context) {
+    final db = Provider.of<DataBaseProvider>(context, listen: false);
     List<String> fechaHoraArray = clima.currentWeather.time.split("T");
     List<String> fechArray = fechaHoraArray[0].split("-");
 
@@ -152,6 +156,53 @@ class BodyDetailComponent extends StatelessWidget {
           const CharAdnResportComponent(),
           const SizedBox(height: 20),
           const CountsComponents(),
+          const SizedBox(height: 40),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.blue,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: db.loading
+                ? const CircularProgressIndicator(
+                    color: Colors.white,
+                  )
+                : TextButton(
+                    onPressed: () async {
+                      final resp = await db.insertarCiudad(ciudad);
+                      if (resp) {
+                        show_snackbar(
+                          title: "Exito",
+                          messaje: "Agregado a Favoritos con exito",
+                          type: ContentType.success,
+                          context: context,
+                        );
+                      } else {
+                        show_snackbar(
+                          title: "Ya existe",
+                          messaje: "Ya esta agregado a favoritos",
+                          type: ContentType.warning,
+                          context: context,
+                        );
+                      }
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Icon(
+                          Icons.star,
+                          color: Colors.white,
+                        ),
+                        TextComponent(
+                          width: 120,
+                          text: 'Agregar a Favorito',
+                          textAlign: TextAlign.center,
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ],
+                    ),
+                  ),
+          ),
           const SizedBox(height: 40),
         ],
       ),
@@ -650,12 +701,14 @@ class TextComponent extends StatelessWidget {
     this.width,
     this.fontWeight = FontWeight.normal,
     this.textAlign = TextAlign.left,
+    this.color = Colors.black,
   });
   final String text;
   final double fontSize;
   final double? width;
   final FontWeight fontWeight;
   final TextAlign textAlign;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
@@ -666,6 +719,7 @@ class TextComponent extends StatelessWidget {
         style: TextStyle(
           fontSize: fontSize,
           fontWeight: fontWeight,
+          color: color,
         ),
         textAlign: textAlign,
       ),

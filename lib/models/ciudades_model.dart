@@ -58,9 +58,9 @@ class Ciudad {
   final String? admin1;
   final int? admin2Id;
   final int? admin3Id;
-  final List<String>? postcodes;
   final String? admin2;
   final String? admin3;
+  final List<String>? postcodes;
 
   factory Ciudad.fromJson(Map<String, dynamic> json) => Ciudad(
         id: json["id"],
@@ -78,10 +78,31 @@ class Ciudad {
         admin1: json["admin1"],
         admin2Id: json["admin2_id"],
         admin3Id: json["admin3_id"],
+        admin2: json["admin2"],
+        admin3: json["admin3"],
         postcodes: json["postcodes"] != null
             ? List<String>.from(json["postcodes"].map((x) => x))
             : [],
-        admin2: json["admin2"],
-        admin3: json["admin3"],
       );
+
+  Map<String, dynamic> toJson() => {
+        "id": id,
+        "name": name,
+        "latitude": latitude,
+        "longitude": longitude,
+        "elevation": elevation,
+        "featureCode": featureCode,
+        "countryCode": countryCode,
+        "admin1Id": admin1Id,
+        "timezone": timezone,
+        "population": population,
+        "countryId": countryId,
+        "country": country,
+        "admin1": admin1,
+        "admin2Id": admin2Id,
+        "admin3Id": admin3Id,
+        "admin2": admin3,
+        "admin3": admin2,
+        "postcodes": "0000"
+      };
 }
